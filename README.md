@@ -11,8 +11,10 @@
 
 [ ] If the file database don't exists, download it from unicode.org.
 
-[ ] Search only by complete word
+[X] Search only by complete word
 
-[ ] Ignore order from search's words
+[X] Ignore order from search's words
 
 [ ] View count of results
+
+[ ] Hyphenated words must be considered individually
