@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"reflect"
 	"strings"
@@ -9,7 +8,6 @@ import (
 )
 
 const letterA = `0041;LATIN CAPITAL LETTER A;Lu;0;L;;;;;N;;;;0061;`
-const nameA = "LATIN CAPITAL LETTER A"
 
 const line3Dto43 = `
 003D;EQUALS SIGN;Sm;0;ON;;;;;N;;;;;
@@ -21,19 +19,43 @@ const line3Dto43 = `
 0043;LATIN CAPITAL LETTER C;Lu;0;L;;;;;N;;;;0063;
 `
 
-func TestRowAnalysis(t *testing.T) {
-	runeUCD, name, words := RowAnalysis(letterA)
-	if runeUCD != 'A' {
-		t.Errorf("Want 'A', got %q", runeUCD)
+func TestRowAnalysis_cases(t *testing.T) {
+	var cases = []struct {
+		line    string
+		runeUCD rune
+		name    string
+		words   []string
+	}{
+		{letterA,
+			'A',
+			"LATIN CAPITAL LETTER A",
+			[]string{"LATIN", "CAPITAL", "LETTER", "A"},
+		},
+		{"0021;EXCLAMATION MARK;Po;0;ON;;;;;N;;;;;",
+			'!',
+			"EXCLAMATION MARK",
+			[]string{"EXCLAMATION", "MARK"},
+		},
+		// {"002D;HYPHEN-MINUS;Pd;0;ES;;;;;N;;;;;",
+		// 	'-',
+		// 	"HYPHEN-MINUS",
+		// 	[]string{"HYPHEN", "MINUS"},
+		// },
+		// {"0027;APOSTROPHE;Po;0;ON;;;;;N;APOSTROPHE-QUOTE;;;",
+		// 	'\'',
+		// 	"APOSTROPHE (APOSTROPHE-QUOTE)",
+		// 	[]string{"APOSTROPHE", "QUOTE"},
+		// },
 	}
-	if name != nameA {
-		t.Errorf("Want %q, got %q", nameA, name)
-	}
-	var wordsA = []string{"LATIN", "CAPITAL", "LETTER", "A"}
-	fmt.Println(words)
-	fmt.Println(wordsA)
-	if reflect.DeepEqual(words, wordsA) {
-		t.Errorf("\n\tWant %q,\n\tgot %q", words, wordsA)
+
+	for _, caseX := range cases {
+		runeUCD, name, words := RowAnalysis(caseX.line)
+		if runeUCD != caseX.runeUCD ||
+			name != caseX.name ||
+			!reflect.DeepEqual(words, caseX.words) {
+			t.Errorf("\nAnalisarLinha(%q)\n-> (%q, %q, %q)", // ➎
+				caseX.line, runeUCD, name, words)
+		}
 	}
 }
 
@@ -117,8 +139,8 @@ func ExampleListUCD_two_words() {
 func Example_searchTwoWords() {
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
-	os.Args = []string{"", "cat", "smiling"}
-	main() // ➌
+	os.Args = []string{"", "cat ", "smiling"}
+	main()
 	// Output:
 	// U+1F638	😸	GRINNING CAT FACE WITH SMILING EYES
 	// U+1F63A	😺	SMILING CAT FACE WITH OPEN MOUTH

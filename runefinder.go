@@ -28,13 +28,27 @@ func containsAll(slice []string, searchs []string) bool {
 	return true
 }
 
+func split(term string) []string {
+	separator := func(c rune) bool {
+		return c == ' ' || c == '-'
+	}
+	return strings.FieldsFunc(term, separator)
+}
+
 // RowAnalysis take a line from UCD and return it info
 func RowAnalysis(ucdLine string) (rune, string, []string) {
 	fields := strings.Split(ucdLine, ";")
 	code, _ := strconv.ParseInt(fields[0], 16, 32)
-	words := strings.Fields(fields[1])
+	name := fields[1]
+	words := split(name)
 
-	return rune(code), fields[1], words
+	if fields[10] != "" {
+		name = fmt.Sprintf("%s (%s)", name, fields[10])
+		for _, term := range split(fields[10]) {
+			words = append(words, term)
+		}
+	}
+	return rune(code), name, words
 }
 
 // ListUCD get a search and return findings list

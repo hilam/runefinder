@@ -17,4 +17,4 @@
 
 [ ] View count of results
 
-[ ] Hyphenated words must be considered individually
+[X] Hyphenated words must be considered individually
