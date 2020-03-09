@@ -5,10 +5,16 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
+	"os/user"
 	"strconv"
 	"strings"
+	"time"
 )
+
+// UCDURL is the url to download de UnicodeDat.txt
+const UCDURL = "http://www.unicode.org/Public/UNIDATA/UnicodeData.txt"
 
 func contains(slice []string, search string) bool {
 	for _, item := range slice {
@@ -67,8 +73,69 @@ func ListUCD(text io.Reader, search string) {
 	}
 }
 
+func restore(envVar, value string, existed bool) {
+	if existed {
+		os.Setenv(envVar, value)
+	} else {
+		os.Unsetenv(envVar)
+	}
+}
+
+func getPathUCD() string {
+	pathUCD := os.Getenv("UCD_PATH")
+	if pathUCD == "" {
+		user, err := user.Current()
+		exitIf(err)
+		pathUCD = user.HomeDir + "/UnicodeData.txt"
+	}
+	return pathUCD
+}
+
+func exitIf(err error) {
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
+
+func openUCD(path string) (*os.File, error) {
+	ucd, err := os.Open(path)
+	if os.IsNotExist(err) {
+		fmt.Printf("%s not found\nDownloading %s\n", path, UCDURL)
+		done := make(chan bool)
+		go downloadUCD(UCDURL, path, done)
+		progress(done)
+		ucd, err = os.Open(path)
+	}
+	return ucd, err
+}
+
+func progress(done <-chan bool) {
+	for {
+		select {
+		case <-done:
+			fmt.Println()
+			return
+		default:
+			fmt.Print(".")
+			time.Sleep(150 * time.Millisecond)
+		}
+	}
+}
+
+func downloadUCD(url, path string, done chan<- bool) {
+	response, err := http.Get(url)
+	exitIf(err)
+	defer response.Body.Close()
+	file, err := os.Create(path)
+	exitIf(err)
+	defer file.Close()
+	_, err = io.Copy(file, response.Body)
+	exitIf(err)
+	done <- true
+}
+
 func main() {
-	ucd, err := os.Open("UnicodeData.txt")
+	ucd, err := openUCD(getPathUCD())
 	if err != nil {
 		log.Fatal(err.Error())
 	}

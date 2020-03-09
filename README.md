@@ -9,7 +9,7 @@
 
 ### Roadmap
 
-[ ] If the file database don't exists, download it from unicode.org.
+[X] If the file database don't exists, download it from unicode.org.
 
 [X] Search only by complete word
 

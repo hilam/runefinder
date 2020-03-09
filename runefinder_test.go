@@ -1,10 +1,14 @@
 package main
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 const letterA = `0041;LATIN CAPITAL LETTER A;Lu;0;L;;;;;N;;;;0061;`
@@ -146,4 +150,68 @@ func Example_searchTwoWords() {
 	// U+1F63A	😺	SMILING CAT FACE WITH OPEN MOUTH
 	// U+1F63B	😻	SMILING CAT FACE WITH HEART-SHAPED EYES
 
+}
+
+func TestGetPathUCD_setted(t *testing.T) {
+	pathBefore, existed := os.LookupEnv("UCD_PATH")
+	defer restore("UCD_PATH", pathBefore, existed)
+	pathUCD := fmt.Sprintf(".TEST%d-UnicodeData.txt", time.Now().UnixNano())
+	os.Setenv("UCD_PATH", pathUCD)
+	got := getPathUCD()
+	if got != pathUCD {
+		t.Errorf("getPathUCD() [setted]\nwaited: %q; got: %q", pathUCD, got)
+	}
+}
+
+func TestGetPathUCD_default(t *testing.T) {
+	pathBefore, existed := os.LookupEnv("UCD_PATH")
+	defer restore("UCD_PATH", pathBefore, existed)
+	os.Unsetenv("UCD_PATH")
+	filename := "/UnicodeData.txt"
+	got := getPathUCD()
+	if !strings.HasSuffix(got, filename) {
+		t.Errorf("getPathUCD() [default]\nwaited (filename): %q; got: %q", filename, got)
+	}
+}
+
+func TestOpenUCD_local(t *testing.T) {
+	pathUCD := getPathUCD()
+	ucd, err := openUCD(pathUCD)
+	if err != nil {
+		t.Errorf("openUCD(%q):\n%v", pathUCD, err)
+	}
+	ucd.Close()
+}
+
+func TestDownloadUCD(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte(line3Dto43))
+		},
+	))
+	defer srv.Close()
+
+	pathUCD := fmt.Sprintf("./TEST%d-UnicodeData.txt", time.Now().UnixNano())
+	done := make(chan bool)
+	go downloadUCD(srv.URL, pathUCD, done)
+	_ = <-done
+	ucd, err := os.Open(pathUCD)
+	if os.IsNotExist(err) {
+		t.Errorf("downloadUCD dont get:%v\n%v", pathUCD, err)
+	}
+	ucd.Close()
+	os.Remove(pathUCD)
+}
+
+func TestOpenUCD_remote(t *testing.T) {
+	if testing.Short() {
+		t.Skip("ignored test [-test.short option]")
+	}
+	pathUCD := fmt.Sprintf("./TEST%d-UnicodeData.txt", time.Now().UnixNano())
+	ucd, err := openUCD(pathUCD)
+	if err != nil {
+		t.Errorf("openUCD(%q):\n%v", pathUCD, err)
+	}
+	ucd.Close()
+	os.Remove(pathUCD)
 }
