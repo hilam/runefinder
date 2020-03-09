@@ -59,6 +59,7 @@ func RowAnalysis(ucdLine string) (rune, string, []string) {
 
 // ListUCD get a search and return findings list
 func ListUCD(text io.Reader, search string) {
+	count := 0
 	searchs := strings.Fields(search)
 	scanner := bufio.NewScanner(text)
 	for scanner.Scan() {
@@ -68,9 +69,11 @@ func ListUCD(text io.Reader, search string) {
 		}
 		runeUCD, name, words := RowAnalysis(line)
 		if containsAll(words, searchs) {
+			count++
 			fmt.Printf("U+%04X\t%[1]c\t%s\n", runeUCD, name)
 		}
 	}
+	fmt.Println("# of results: " + strconv.FormatInt(int64(count), 10))
 }
 
 func restore(envVar, value string, existed bool) {

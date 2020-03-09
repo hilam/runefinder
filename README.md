@@ -15,6 +15,6 @@
 
 [X] Ignore order from search's words
 
-[ ] View count of results
+[X] View count of results
 
 [X] Hyphenated words must be considered individually

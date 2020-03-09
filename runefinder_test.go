@@ -67,6 +67,7 @@ func ExampleListUCD() {
 	text := strings.NewReader(line3Dto43)
 	ListUCD(text, "MARK")
 	// Output: U+003F	?	QUESTION MARK
+	// # of results: 1
 }
 
 func ExampleListUCD_two_results() {
@@ -75,6 +76,7 @@ func ExampleListUCD_two_results() {
 	// Output:
 	// U+003D	=	EQUALS SIGN
 	// U+003E	>	GREATER-THAN SIGN
+	// # of results: 2
 }
 
 func Example() {
@@ -84,6 +86,7 @@ func Example() {
 	main()
 	// Output:
 	// U+20A2	₢	CRUZEIRO SIGN
+	// # of results: 1
 }
 
 func TestContains(t *testing.T) {
@@ -138,6 +141,7 @@ func ExampleListUCD_two_words() {
 	// U+0041	A	LATIN CAPITAL LETTER A
 	// U+0042	B	LATIN CAPITAL LETTER B
 	// U+0043	C	LATIN CAPITAL LETTER C
+	// # of results: 3
 }
 
 func Example_searchTwoWords() {
@@ -149,6 +153,7 @@ func Example_searchTwoWords() {
 	// U+1F638	😸	GRINNING CAT FACE WITH SMILING EYES
 	// U+1F63A	😺	SMILING CAT FACE WITH OPEN MOUTH
 	// U+1F63B	😻	SMILING CAT FACE WITH HEART-SHAPED EYES
+	// # of results: 3
 
 }
 
